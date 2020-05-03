@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<link href='/static/main.css' rel='stylesheet' />
+<script src='/static/main.js'></script>
+<script src='static/lib/jquery.min.js'></script>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+    height: '100%',
+    aspectRatio: 1.8,
+    editable: true, // enable draggable events
+    now: '2019-08-07',
+    scrollTime: '00:00', // undo default 6am scrollTime
+    header: {
+      left: 'today prev,next',
+      center: 'title',
+      right: 'resourceTimelineThreeDays,timeGridWeek,resourceTimelineMonth,resourceTimelineYear,listWeek'
+    },
+    defaultView: 'resourceTimelineMonth',
+    views: {
+      resourceTimelineThreeDays: {
+        type: 'resourceTimeline',
+        duration: { days: 3 },
+        buttonText: '3 days'
+      }
+    },
+    expandRows: true,
+    resourceAreaHeaderContent: 'Rooms',
+
+    resources: {
+        url: '/ressources',
+        type: "POST",
+        dataType: "json"        
+    },
+  //..and your events like this...
+  /*
+  events: function(start, end, timezone, callback) {
+    $.ajax({
+      url: '/data',      
+    }).done(function(response) {    
+      callback(response); //return event data to the calendar via the provided callback function
+    });
+  }
+  */
+    });
+  calendar.render();
+});
+
+</script>
+<style>
+
+  html, body {
+    overflow: hidden; /* don't do scrollbars */
+    font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+    font-size: 14px;
+  }
+
+  #calendar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .fc-header-toolbar {
+    /*
+    the calendar will be butting up against the edges,
+    but let's scoot in the header's buttons
+    */
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+</style>
+</head>
+<body>
+
+  <div id='calendar-container'>
+    <div id='calendar'></div>
+  </div>
+
+</body>
+</html>
