@@ -1,3 +1,6 @@
+Add a sqlite support for event.
+
+----
 A basic calendar with Flask and fullcalendar.io
 
 
