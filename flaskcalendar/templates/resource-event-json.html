@@ -15,11 +15,13 @@
 
      /* initialize the external events
     -----------------------------------------------------------------*/
-
+    var eventDropped = undefined;
     var containerEl = document.getElementById('external-events');
     new FullCalendar.Draggable(containerEl, {
       itemSelector: '.fc-event',
       eventData: function(eventEl) {
+        console.log("eventData");
+        console.log(eventEl);
         return {
           title: eventEl.innerText.trim()
         }
@@ -27,6 +29,17 @@
     });
 
 
+    function getIdEvent( event )
+    {
+       if (event.id != "")
+       {
+         return event.id;
+       }
+       else
+       {
+         return event.extendedProps.dbid;
+       }
+    }
     var calendarEl = document.getElementById('calendar');
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -42,6 +55,8 @@
         //right: 'resourceTimelineWeek,resourceTimelineTenDay,resourceTimelineMonth,resourceTimelineYear,listWeek'
         right: 'resourceTimelineMonth,resourceTimelineYear,listWeek'
       },
+      locale: "en-US",
+      timezone : 'local',
       defaultView: 'resourceTimelineMonth', 
     /*  views: {        
         resourceTimelineTenDay: {
@@ -62,10 +77,35 @@
       },
 
       events: { // you can also specify a plain string like 'json/events-for-resources.json'
-        url: 'json/events-for-resources.json',
+        //url: 'json/events-for-resources.json',
+        url: 'events', //-for-resources.json',
         failure: function() {
           document.getElementById('script-warning').style.display = 'block';
         }
+      },
+      
+      drop:function(info){
+        $.ajax({
+                        url: '/create-event',
+                        data: '&date=' + info.date.toLocaleDateString("en-US") + '&resource=' + info.resource.id +'&title=' + info.draggedEl.innerText ,
+                        type: "POST",
+                        success: function (response) {
+                          console.log(response);
+                          console.log(eventDropped);
+                          eventDropped.setExtendedProp("dbid",response);
+                          console.log(eventDropped.id);
+                          //console.log(response);
+                          //console.log(eventDropped);        
+                           // displayMessage("Updated Successfully");
+                        }
+                    });     
+      },
+
+      eventReceive: function( info ) { 
+        eventDropped = info.event;        
+        console.log("eventReceive");
+        console.log(info);
+        console.log(eventDropped);
       },
 
       eventDrop: function (event, delta) {
@@ -75,19 +115,26 @@
         console.log(delta);
 
         newResource  = null;
-        if ( event.newResource !=null)
+        console.log("eventDrop ");
+        console.log(event.newResource);
+        if ( event.newResource !=undefined)
         {
-          newRessource = event.newResource.id;
+          newResource = event.newResource.id;          
+        }
+        else
+        {
+          console.log("event.newResource undefined ")
         }
         
+                    console.log(event.event.start.toLocaleDateString("en-US"));
                     //var start = $.fullCalendar.formatDate(event.start, "Y-MM-DD HH:mm:ss");
                     //var end = $.fullCalendar.formatDate(event.end, "Y-MM-DD HH:mm:ss");
                     $.ajax({
                         url: '/edit-event',
-                        data: '&start=' + event.start + '&end=' + event.end + '&id=' + event.id + '&ressource' + newResource,
+                        data: '&start=' + event.event.start.toLocaleDateString("en-US") /*+ '&end=' + event.event.end.toLocaleDateString("en-US")*/ + '&id=' + getIdEvent(event) + '&resource=' + newResource,
                         type: "POST",
                         success: function (response) {
-                            displayMessage("Updated Successfully");
+                           // displayMessage("Updated Successfully");
                         }
                     });                    
                 },
@@ -152,7 +199,7 @@
           $.ajax({
           url:"/resize",
           type:"POST",
-          data:{start:event.event.start, end:event.event.end, id:event.event.id},
+          data:{start:event.event.start.toLocaleDateString("en-US"), end:event.event.end.toLocaleDateString("en-US"), id:getIdEvent(event.event)},
           success:function(){
           calendar.fullCalendar('refetchEvents');
           alert('Event Update');
